@@ -102,7 +102,50 @@ class _CityDetailScreenState extends State<CityDetailScreen> with SingleTickerPr
 
   Widget _buildPlatformMap() {
     if (Platform.isAndroid || Platform.isIOS) {
-      return _buildMap();
+      try {
+        return _buildMap();
+      } catch (e) {
+        return Container(
+          height: 220,
+          alignment: Alignment.center,
+          child: Card(
+            color: Colors.white,
+            margin: const EdgeInsets.all(24),
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.map_outlined,
+                    size: 48,
+                    color: Colors.blue[800],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Configuration de Google Maps requise',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue[800],
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Veuillez configurer votre clé API Google Maps dans le fichier AndroidManifest.xml',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.blue[800],
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }
     } else {
       return Container(
         height: 220,

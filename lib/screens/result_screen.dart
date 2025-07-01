@@ -36,13 +36,20 @@ class _ResultScreenState extends State<ResultScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return Scaffold(
       body: Container(
+        height: screenHeight,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Colors.indigo[800]!, Colors.blue[400]!],
+            colors: isDark 
+              ? [const Color(0xFF1E1E2D), const Color(0xFF2B2B40)]
+              : [Colors.indigo[800]!, Colors.blue[400]!],
             stops: const [0.0, 0.8],
           ),
         ),
@@ -50,7 +57,7 @@ class _ResultScreenState extends State<ResultScreen> {
           child: Column(
             children: [
               _buildAppBar(),
-              const SizedBox(height: 8),
+              const SizedBox(height: 16),
               // Indication pour l'utilisateur
               FadeInDown(
                 duration: const Duration(milliseconds: 1000),
@@ -58,21 +65,29 @@ class _ResultScreenState extends State<ResultScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   margin: const EdgeInsets.symmetric(horizontal: 24),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.85),
+                    color: isDark 
+                      ? theme.cardColor.withOpacity(0.1)
+                      : Colors.white.withOpacity(0.85),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.blue[200]!),
+                    border: Border.all(
+                      color: isDark ? Colors.blue[700]! : Colors.blue[200]!,
+                    ),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.info_outline, color: Colors.blue[600], size: 18),
+                      Icon(
+                        Icons.info_outline,
+                        color: isDark ? Colors.blue[400] : Colors.blue[600],
+                        size: 18,
+                      ),
                       const SizedBox(width: 8),
                       Flexible(
                         child: Text(
                           'Touchez le nom d\'une ville pour voir plus de détails',
                           style: GoogleFonts.poppins(
                             fontSize: 13,
-                            color: Colors.blue[800],
+                            color: isDark ? Colors.blue[100] : Colors.blue[800],
                             fontWeight: FontWeight.w500,
                           ),
                           textAlign: TextAlign.center,
@@ -82,192 +97,241 @@ class _ResultScreenState extends State<ResultScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 16),
+              // Table des données météo
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: FadeInUp(
-                    duration: const Duration(milliseconds: 800),
-                    child: Card(
-                      elevation: 12,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
-                        side: BorderSide(color: Colors.blue[100]!, width: 1),
-                      ),
-                      color: Colors.white.withOpacity(0.95),
-                      shadowColor: Colors.blue[200]!.withOpacity(0.5),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: DataTable(
-                          headingRowColor: MaterialStateProperty.resolveWith<Color?>(
-                                (states) => Colors.blue[50]!.withOpacity(0.3),
-                          ),
-                          dataRowColor: MaterialStateProperty.resolveWith<Color?>(
-                                (states) => Colors.white.withOpacity(0.9),
-                          ),
-                          columnSpacing: 20,
-                          headingTextStyle: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF2193b0),
-                          ),
-                          dataTextStyle: GoogleFonts.poppins(
-                            fontSize: 15,
-                            color: Colors.black87,
-                          ),
-                          horizontalMargin: 12,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          columns: const [
-                            DataColumn(label: Text('Ville')),
-                            DataColumn(label: Text('Temp.', maxLines: 1, overflow: TextOverflow.ellipsis)),
-                            DataColumn(label: Text('Hum.', maxLines: 1, overflow: TextOverflow.ellipsis)),
-                          ],
-                          rows: List.generate(widget.cities.length, (index) {
-                            final city = widget.cities[index];
-                            final weather = widget.weathers[index];
-                            return DataRow(
-                              color: MaterialStateProperty.resolveWith<Color?>(
-                                    (states) => index % 2 == 0
-                                    ? Colors.grey[50]!.withOpacity(0.3)
-                                    : Colors.white,
-                              ),
-                              cells: [
-                                DataCell(
-                                  InkWell(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => CityDetailScreen(
-                                            city: city,
-                                            weather: weather,
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: Card(
+                    elevation: 8,
+                    color: isDark ? const Color(0xFF2B2B40) : Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Table(
+                                columnWidths: const {
+                                  0: FlexColumnWidth(2),
+                                  1: FlexColumnWidth(1),
+                                  2: FlexColumnWidth(1),
+                                },
+                                defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                                children: [
+                                  TableRow(
+                                    decoration: BoxDecoration(
+                                      color: isDark
+                                        ? Colors.black.withOpacity(0.2)
+                                        : Colors.blue[50]!.withOpacity(0.3),
+                                    ),
+                                    children: [
+                                      TableCell(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(12.0),
+                                          child: Text(
+                                            'Ville',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: isDark ? Colors.blue[300] : const Color(0xFF2193b0),
+                                            ),
                                           ),
                                         ),
-                                      );
-                                    },
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        // Ajout d'un container pour le texte de la ville avec indication visuelle
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(10),
-                                            color: Colors.blue[50],
-                                            border: Border.all(color: Colors.blue[200]!),
+                                      ),
+                                      TableCell(
+                                        child: Center(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(12.0),
+                                            child: Text(
+                                              'Temp.',
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: isDark ? Colors.blue[300] : const Color(0xFF2193b0),
+                                              ),
+                                            ),
                                           ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Text(
-                                                city.name,
-                                                style: TextStyle(
-                                                  color: Colors.blue[700],
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 15,
+                                        ),
+                                      ),
+                                      TableCell(
+                                        child: Center(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(12.0),
+                                            child: Text(
+                                              'Hum.',
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: isDark ? Colors.blue[300] : const Color(0xFF2193b0),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  ...List.generate(widget.cities.length, (index) {
+                                    final city = widget.cities[index];
+                                    final weather = widget.weathers[index];
+                                    return TableRow(
+                                      decoration: BoxDecoration(
+                                        color: isDark
+                                          ? (index % 2 == 0 
+                                              ? Colors.black.withOpacity(0.1)
+                                              : Colors.transparent)
+                                          : (index % 2 == 0
+                                              ? Colors.grey[50]!.withOpacity(0.3)
+                                              : Colors.white),
+                                      ),
+                                      children: [
+                                        TableCell(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: InkWell(
+                                              onTap: () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) => CityDetailScreen(
+                                                      city: city,
+                                                      weather: weather,
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                              child: Container(
+                                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                                                decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(8),
+                                                  color: isDark
+                                                    ? Colors.blue.withOpacity(0.1)
+                                                    : Colors.blue[50],
+                                                  border: Border.all(
+                                                    color: isDark
+                                                      ? Colors.blue[700]!
+                                                      : Colors.blue[200]!,
+                                                  ),
                                                 ),
-                                                overflow: TextOverflow.ellipsis,
-                                                maxLines: 1,
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Expanded(
+                                                      child: Text(
+                                                        city.name,
+                                                        style: TextStyle(
+                                                          color: isDark
+                                                            ? Colors.blue[300]
+                                                            : Colors.blue[700],
+                                                          fontWeight: FontWeight.w600,
+                                                          fontSize: 14,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    Icon(
+                                                      Icons.arrow_forward_ios,
+                                                      size: 12,
+                                                      color: isDark
+                                                        ? Colors.blue[300]
+                                                        : Colors.blue[700],
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
-                                              const SizedBox(width: 4),
-                                              Icon(
-                                                Icons.arrow_forward_ios,
-                                                size: 14,
-                                                color: Colors.blue[700],
+                                            ),
+                                          ),
+                                        ),
+                                        TableCell(
+                                          child: Center(
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(8.0),
+                                              child: Container(
+                                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                                                decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(8),
+                                                  color: isDark
+                                                    ? Colors.black.withOpacity(0.2)
+                                                    : Colors.grey[50],
+                                                ),
+                                                child: Text(
+                                                  '${weather.temperature.toStringAsFixed(1)}°',
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w500,
+                                                    color: isDark ? Colors.blue[100] : null,
+                                                  ),
+                                                ),
                                               ),
-                                            ],
+                                            ),
+                                          ),
+                                        ),
+                                        TableCell(
+                                          child: Center(
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(8.0),
+                                              child: Container(
+                                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                                                decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(8),
+                                                  color: isDark
+                                                    ? Colors.black.withOpacity(0.2)
+                                                    : Colors.grey[50],
+                                                ),
+                                                child: Text(
+                                                  '${weather.humidity}%',
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w500,
+                                                    color: isDark ? Colors.blue[100] : null,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
                                           ),
                                         ),
                                       ],
-                                    ),
-                                  ),
-                                ),
-                                DataCell(
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(10),
-                                      color: Colors.grey[50],
-                                    ),
-                                    child: Text(
-                                      weather.temperature == 0 && weather.description == 'Erreur' ? 'Erreur' : weather.temperature.toStringAsFixed(1),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ),
-                                DataCell(
-                                  Center(
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(10),
-                                        color: Colors.grey[50],
-                                      ),
-                                      child: Text(
-                                        weather.humidity == 0 && weather.description == 'Erreur' ? 'Erreur' : '${weather.humidity}%',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                          color: weather.description == 'Erreur' ? Colors.red : Colors.black87,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            );
-                          }),
+                                    );
+                                  }),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              FadeInUp(
-                duration: const Duration(milliseconds: 1000),
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 32),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF2193b0), Color(0xFF6dd5ed)],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.blue[200]!.withOpacity(0.5),
-                        spreadRadius: 2,
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: ElevatedButton(
-                    onPressed: widget.onRestart,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                      textStyle: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.refresh, color: Colors.white),
-                        const SizedBox(width: 10),
-                        const Text('Recommencer', style: TextStyle(fontSize: 18)),
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: widget.onRestart,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: isDark ? Colors.blue[600] : theme.colorScheme.primary,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                              ),
+                              icon: const Icon(Icons.refresh),
+                              label: const Text(
+                                'Recommencer',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
             ],
           ),
         ),
